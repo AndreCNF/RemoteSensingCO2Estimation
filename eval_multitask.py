@@ -80,7 +80,11 @@ def eval_model(model, params, datadir, seglabeldir, reg_data):
         val_bin_loss_total += loss_bin.item()
         val_gen_loss_total += loss_gen.item()
 
-        loss_epoch = loss_image + loss_gen + loss_bin
+        loss_epoch = (
+            params.weight_segmentation * loss_image
+            + params.weight_regression * loss_gen
+            + params.weight_classification * loss_bin
+        )
         val_loss_total += loss_epoch.item()
 
         # derive binary segmentation map from prediction
@@ -122,6 +126,36 @@ def main():
     parser.add_argument("-mo", type=float, nargs="?", default=0.7, help="Momentum")
     parser.add_argument("-exp_name", type=str, default="", help="Name of experiment")
     parser.add_argument("-lw", type=float, default=0.1, help="Weight Loss")
+    parser.add_argument(
+        "--weight_segmentation",
+        type=float,
+        default=1.0,
+        help="Weight for segmentation loss",
+    )
+    parser.add_argument(
+        "--weight_regression",
+        type=float,
+        default=1.0,
+        help="Weight for regression loss",
+    )
+    parser.add_argument(
+        "--weight_classification",
+        type=float,
+        default=1.0,
+        help="Weight for classification loss",
+    )
+    parser.add_argument(
+        "--data_dir", type=str, default="", help="Path to data directory"
+    )
+    parser.add_argument(
+        "--seg_label_dir",
+        type=str,
+        default="",
+        help="Path to segmentation label directory",
+    )
+    parser.add_argument(
+        "--reg_dir", type=str, default="", help="Path to regression data directory"
+    )
     args = parser.parse_args()
 
     model = MultiTaskModel(n_channels=12, n_classes=1)
@@ -137,9 +171,9 @@ def main():
     eval_model(
         model,
         args,
-        datadir="path/to/images",
-        seglabeldir="path/to/seglabels",
-        reg_data="path/to/csv",
+        datadir=args.data_dir,
+        seglabeldir=args.seg_label_dir,
+        reg_data=args.reg_data,
     )
 
 

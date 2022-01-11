@@ -125,7 +125,11 @@ def train_model(
             loss_gen = loss_r(reg_output, e.unsqueeze(dim=1))
             loss_bin = loss_c(logits, t)
 
-            loss_epoch = loss_image + loss_gen + loss_bin
+            loss_epoch = (
+                params.weight_segmentation * loss_image
+                + params.weight_regression * loss_gen
+                + params.weight_classification * loss_bin
+            )
 
             train_image_loss_total += loss_image.item()
             train_gen_loss_total += loss_gen.item()
@@ -169,7 +173,11 @@ def train_model(
             loss_bin = loss_c(logits, t)
             loss_gen = loss_r(reg_output, e.unsqueeze(dim=1))
 
-            loss_epoch = loss_image + loss_gen + loss_bin
+            loss_epoch = (
+                params.weight_segmentation * loss_image
+                + params.weight_regression * loss_gen
+                + params.weight_classification * loss_bin
+            )
 
             val_loss_total += loss_epoch.item()
             val_image_loss_total += loss_image.item()
@@ -260,15 +268,49 @@ def train_model(
 def main():
     # setup argument parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-ep", type=int, default=300, help="Number of epochs")
-    parser.add_argument("-bs", type=int, nargs="?", default=32, help="Batch size")
-    parser.add_argument("-lr", type=float, nargs="?", default=0.7, help="Learning rate")
-    parser.add_argument("-mo", type=float, nargs="?", default=0.7, help="Momentum")
-    parser.add_argument("-exp_name", type=str, default="", help="Name of experiment")
+    parser.add_argument("--ep", type=int, default=300, help="Number of epochs")
+    parser.add_argument("--bs", type=int, nargs="?", default=32, help="Batch size")
     parser.add_argument(
-        "-channels", type=str, default="0,1,2,3,4,5,6,7,8,9,10,11", help="Channels"
+        "--lr", type=float, nargs="?", default=0.7, help="Learning rate"
     )
-    parser.add_argument("")
+    parser.add_argument("--mo", type=float, nargs="?", default=0.7, help="Momentum")
+    parser.add_argument("--exp_name", type=str, default="", help="Name of experiment")
+    parser.add_argument(
+        "--channels", type=str, default="0,1,2,3,4,5,6,7,8,9,10,11", help="Channels"
+    )
+    parser.add_argument(
+        "--weight_segmentation",
+        type=float,
+        default=1.0,
+        help="Weight for segmentation loss",
+    )
+    parser.add_argument(
+        "--weight_regression",
+        type=float,
+        default=1.0,
+        help="Weight for regression loss",
+    )
+    parser.add_argument(
+        "--weight_classification",
+        type=float,
+        default=1.0,
+        help="Weight for classification loss",
+    )
+    parser.add_argument(
+        "--data_dir", type=str, default="", help="Path to data directory"
+    )
+    parser.add_argument(
+        "--seg_label_dir",
+        type=str,
+        default="",
+        help="Path to segmentation label directory",
+    )
+    parser.add_argument(
+        "--reg_dir", type=str, default="", help="Path to regression data directory"
+    )
+    parser.add_argument(
+        "--checkpoint_dir", type=str, default="", help="Path to checkpoint directory"
+    )
 
     args = parser.parse_args()
 
@@ -286,10 +328,10 @@ def main():
         args,
         opt,
         channels,
-        datadir="path/to/images",
-        seglabeldir="path/to/segmentation/labels",
-        reg_data="path/to/csv",
-        checkpoint_dir="path/to/model/checkpoints",
+        datadir=args.data_dir,
+        seglabeldir=args.seg_label_dir,
+        reg_data=args.reg_data,
+        checkpoint_dir=args.checkpoint_dir,
     )
 
 
