@@ -154,7 +154,7 @@ def main():
         help="Path to segmentation label directory",
     )
     parser.add_argument(
-        "--reg_dir", type=str, default="", help="Path to regression data directory"
+        "--reg_data", type=str, default="", help="Path to regression data directory"
     )
     args = parser.parse_args()
 
