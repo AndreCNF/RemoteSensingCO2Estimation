@@ -259,7 +259,6 @@ class MultiTaskDataset(Dataset):
             "type": self.fossil_type[idx],
             "gen_output": self.gen_outputs[idx],
             "weather": self.weather[idx],
-            "polygons": list_polygons,
             "imgfile": self.imgfiles[idx],
         }
 
@@ -285,7 +284,6 @@ class ToTensor(object):
             "type": sample["type"],
             "img": torch.from_numpy(sample["img"].copy()),
             "fpt": torch.from_numpy(sample["fpt"].copy()),
-            "polygons": sample["polygons"],
             "gen_output": sample["gen_output"],
             "weather": sample["weather"],
             "imgfile": sample["imgfile"],
@@ -322,7 +320,6 @@ class Randomize(object):
             "type": sample["type"],
             "img": imgdata.copy(),
             "fpt": fptdata.copy(),
-            "polygons": sample["polygons"],
             "gen_output": sample["gen_output"],
             "weather": sample["weather"],
             "imgfile": sample["imgfile"],
