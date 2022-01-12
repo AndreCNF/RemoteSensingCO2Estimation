@@ -41,6 +41,7 @@ def train_model(
     exp_out_dir = os.path.join(checkpoint_dir, params.exp_name)
     os.makedirs(os.path.join(exp_out_dir, "regression_checkpoints"), exist_ok=True)
     os.makedirs(os.path.join(exp_out_dir, "segmentation_checkpoints"), exist_ok=True)
+    os.makedirs(os.path.join(exp_out_dir, "classification_checkpoints"), exist_ok=True)
 
     reg_data = pd.read_csv(os.path.join(reg_data, "reg_co2_data.csv"))
 
