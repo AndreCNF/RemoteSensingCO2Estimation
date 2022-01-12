@@ -73,7 +73,7 @@ def train_model(
         reg_data=reg_data,
         mult=1,
         channels=channels,
-    )  # reg_data=reg_data
+    )
 
     # draw random subsamples
     train_sampler = RandomSampler(
