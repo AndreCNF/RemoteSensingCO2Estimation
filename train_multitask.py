@@ -1,3 +1,4 @@
+from comet_ml import Experiment
 import os
 import numpy as np
 import pandas as pd
@@ -42,6 +43,17 @@ def train_model(
     os.makedirs(os.path.join(exp_out_dir, "regression_checkpoints"), exist_ok=True)
     os.makedirs(os.path.join(exp_out_dir, "segmentation_checkpoints"), exist_ok=True)
     os.makedirs(os.path.join(exp_out_dir, "classification_checkpoints"), exist_ok=True)
+
+    comet_api_key = os.environ.get("COMET_API_KEY")
+    comet_project_name = os.environ.get("COMET_PROJECT_NAME")
+    comet_workspace = os.environ.get("COMET_WORKSPACE")
+    experiment = Experiment(
+        api_key=comet_api_key,
+        project_name=comet_project_name,
+        workspace=comet_workspace,
+    )
+    experiment.set_name(params.exp_name)
+    experiment.log_parameters(params)
 
     reg_data = pd.read_csv(os.path.join(reg_data, "reg_co2_data.csv"))
 
@@ -224,6 +236,24 @@ def train_model(
                 val_acc_total / (j + 1),
                 train_bin_acc_total / (i + 1),
                 val_bin_acc_total / (j + 1),
+            )
+        )
+        experiment.log_metrics(
+            dict(
+                train_loss=train_loss_total / (i + 1),
+                train_image_loss=train_image_loss_total / (i + 1),
+                train_gen_loss=train_gen_loss_total / (i + 1),
+                train_bin_loss=train_bin_loss_total / (i + 1),
+                val_loss=val_loss_total / (j + 1),
+                val_image_loss=val_image_loss_total / (j + 1),
+                val_gen_loss=val_gen_loss_total / (j + 1),
+                val_bin_loss=val_bin_loss_total / (j + 1),
+                train_iou=np.average(train_ious),
+                val_iou=np.average(val_ious),
+                train_acc=train_acc_total / (i + 1),
+                val_acc=val_acc_total / (j + 1),
+                train_bin_acc=train_bin_acc_total / (i + 1),
+                val_bin_acc=val_bin_acc_total / (j + 1),
             )
         )
 
