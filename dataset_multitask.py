@@ -29,15 +29,17 @@ class MultiTaskDataset(Dataset):
         Args:
             datadir (string): Path to the folder of the images.
         """
-        fuel_type_dict = {}
-        fuel_type_dict["Fossil Brown coal/Lignite"] = 0
-        fuel_type_dict["Fossil Hard coal"] = 1
-        fuel_type_dict["Fossil Gas"] = 2
-        fuel_type_dict["Fossil Peat"] = 3
-        fuel_type_dict["Fossil Coal-derived gas"] = 2
-        fuel_type_dict["Fossil Oil"] = 3
+        fuel_type_dict = {
+            "Fossil Brown coal/Lignite": 0,
+            "Fossil Hard coal": 1,
+            "Fossil Gas": 2,
+            "Fossil Peat": 3,
+            "Fossil Coal-derived gas": 2,
+            "Fossil Oil": 3,
+        }
 
         self.datadir = datadir
+        self.seglabeldir = seglabeldir
         self.reg_data = reg_data
         self.transform = transform
         self.channels = np.array(channels)
@@ -61,8 +63,8 @@ class MultiTaskDataset(Dataset):
         seglabels = []
         segfile_lookup = {}
 
-        for i, seglabelfile in enumerate(os.listdir(seglabeldir)):
-            segdata = json.load(open(os.path.join(seglabeldir, seglabelfile), "r"))
+        for i, seglabelfile in enumerate(os.listdir(self.seglabeldir)):
+            segdata = json.load(open(os.path.join(self.seglabeldir, seglabelfile), "r"))
             seglabels.append(segdata)
             segfile_lookup[
                 "-".join(segdata["data"]["image"].split("-")[1:]).replace(
@@ -72,7 +74,7 @@ class MultiTaskDataset(Dataset):
 
         # read in image file names for positive images
         idx = 0
-        for root, _, files in os.walk(datadir):
+        for root, _, files in os.walk(self.datadir):
             for filename in files:
                 if not filename.endswith(".tif"):
                     continue
@@ -124,7 +126,7 @@ class MultiTaskDataset(Dataset):
                         )
                         idx += 1
         # add as many negative example images
-        for root, _, files in os.walk(datadir):
+        for root, _, files in os.walk(self.datadir):
             for filename in files:
                 if not filename.endswith(".tif"):
                     continue
@@ -162,7 +164,6 @@ class MultiTaskDataset(Dataset):
                             ].to_numpy()
                         )
                         idx += 1
-
         # turn lists into arrays
         self.imgfiles = np.array(self.imgfiles)
         self.gen_outputs = np.array(self.gen_outputs)
@@ -367,9 +368,6 @@ class Normalize(object):
         self.channel_means = self.channels_means[channels]
         self.channel_stds = self.channels_stds[channels]
 
-        self.weather_max = np.array([307.7, 99.0, 14.5, 15.2])
-        self.weather_min = np.array([264.8, 1.43, -13.46, -14.30])
-
     def __call__(self, sample):
         """
         :param sample: sample to be normalized
@@ -378,9 +376,6 @@ class Normalize(object):
         sample["img"] = (
             sample["img"] - self.channel_means.reshape(sample["img"].shape[0], 1, 1)
         ) / self.channel_stds.reshape(sample["img"].shape[0], 1, 1)
-        sample["weather"] = (sample["weather"] - self.weather_min) / (
-            self.weather_max - self.weather_min
-        )
         return sample
 
 
